@@ -11,11 +11,22 @@ from typing import Dict, Optional, List, Any
 import os
 from app.models.instance import AgentInstance, ModelProvider, HierarchicalAgentConfig, ToolConfig, ToolType
 
+from pymongo import uri_parser
+
 class AgentManager:
     def __init__(self):
         self.teams_cache: Dict[str, Team] = {}
         self.mongodb_url = os.getenv("MONGODB_URL")
-        self.mongodb_database = os.getenv("MONGODB_DATABASE")
+        
+        db_name = None
+        if self.mongodb_url:
+            try:
+                parsed_uri = uri_parser.parse_uri(self.mongodb_url)
+                db_name = parsed_uri.get('database')
+            except Exception:
+                pass
+        
+        self.mongodb_database = db_name or os.getenv("MONGODB_DATABASE")
 
     def _get_cache_key(self, user_id: str, instance_id: str) -> str:
         return f"{user_id}:{instance_id}"

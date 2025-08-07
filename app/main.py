@@ -25,13 +25,27 @@ app.add_middleware(
 @app.on_event("startup")
 async def startup_event():
     """Inicializa conexão com MongoDB e Beanie"""
-    
+    from pymongo import uri_parser
+
     mongodb_url = os.getenv("MONGODB_URL", "mongodb://localhost:27017/")
-    mongodb_database = os.getenv("MONGODB_DATABASE", "agno_agents")
     
+    db_name = None
+    if mongodb_url:
+        try:
+            # Tenta extrair o nome do banco de dados da URL
+            parsed_uri = uri_parser.parse_uri(mongodb_url)
+            db_name = parsed_uri.get('database')
+        except Exception:
+            # Ignora erros de parsing, o fallback será usado
+            pass
+    
+    if not db_name:
+        # Se não estiver na URL, busca da variável de ambiente ou usa o padrão
+        db_name = os.getenv("MONGODB_DATABASE", "agno_agents")
+
     # Conecta ao MongoDB
     client = AsyncIOMotorClient(mongodb_url)
-    database = client[mongodb_database]
+    database = client[db_name]
     
     # Inicializa Beanie
     await init_beanie(

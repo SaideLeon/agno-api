@@ -1,2 +1,4 @@
 .env
 erro.md 
+__pycache__
+agno-api/app/__pycache__/
