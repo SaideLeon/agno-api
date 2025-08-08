@@ -479,3 +479,356 @@ The new Teams architecture (replacing deprecated Agent Teams) provides better sc
 (Agent Sessions)[https://docs.agno.com/agents/sessions]
 (Multi-Agent Examples)[https://docs.agno.com/examples/getting-started/agent-team]
 ```
+
+Aqui estão exemplos de código com todos os tipos de ferramentas de pesquisa disponíveis no Agno:
+
+## 1. DuckDuckGo (Pesquisa Web Gratuita)
+```python
+from agno.agent import Agent
+from agno.tools.duckduckgo import DuckDuckGoTools
+
+agent = Agent(
+    tools=[DuckDuckGoTools()], 
+    show_tool_calls=True
+)
+agent.print_response("O que está acontecendo na França?", markdown=True)
+```
+
+## 2. Google Search
+```python
+from agno.agent import Agent
+from agno.tools.googlesearch import GoogleSearchTools
+
+agent = Agent(
+    tools=[GoogleSearchTools()],
+    show_tool_calls=True,
+    markdown=True,
+)
+agent.print_response("Quais são os últimos desenvolvimentos em IA?")
+```
+
+## 3. Tavily (Pesquisa Avançada)
+```python
+from agno.agent import Agent
+from agno.tools.tavily import TavilyTools
+
+agent = Agent(
+    tools=[TavilyTools()],
+    show_tool_calls=True,
+    markdown=True,
+)
+agent.print_response("Pesquise por avanços recentes em computação quântica")
+```
+
+## 4. Exa (Pesquisa Inteligente)
+```python
+from agno.agent import Agent
+from agno.tools.exa import ExaTools
+
+agent = Agent(
+    tools=[ExaTools(
+        include_domains=["cnbc.com", "reuters.com", "bloomberg.com"],
+        category="news"
+    )],
+    show_tool_calls=True,
+)
+agent.print_response("Pesquise notícias sobre AAPL", markdown=True)
+```
+
+## 5. Brave Search
+```python
+from agno.agent import Agent
+from agno.tools.bravesearch import BraveSearchTools
+
+agent = Agent(
+    tools=[BraveSearchTools()],
+    show_tool_calls=True,
+)
+agent.print_response("AI Agents", markdown=True)
+```
+
+## 6. Baidu Search
+```python
+from agno.agent import Agent
+from agno.tools.baidusearch import BaiduSearchTools
+
+agent = Agent(
+    tools=[BaiduSearchTools()],
+    show_tool_calls=True,
+)
+agent.print_response("Quais são os últimos avanços em IA?", markdown=True)
+```
+
+## 7. SerpAPI
+```python
+from agno.agent import Agent
+from agno.tools.serpapi import SerpAPITools
+
+agent = Agent(
+    tools=[SerpAPITools()],
+    show_tool_calls=True,
+    markdown=True,
+)
+agent.print_response("Quais são os principais resultados de pesquisa para 'machine learning'?")
+```
+
+## 8. Serper (Múltiplas Funcionalidades)
+```python
+from agno.agent import Agent
+from agno.tools.serper import SerperTools
+
+agent = Agent(
+    tools=[SerperTools()],
+    show_tool_calls=True,
+)
+agent.print_response("Pesquise as últimas notícias sobre desenvolvimentos em inteligência artificial", markdown=True)
+```
+
+## 9. Linkup (Melhor Pesquisa para IA)
+```python
+from agno.agent import Agent
+from agno.tools.linkup import LinkupTools
+
+agent = Agent(
+    tools=[LinkupTools()], 
+    show_tool_calls=True
+)
+agent.print_response("Quais são as últimas notícias na política francesa?", markdown=True)
+```
+
+## 10. Pesquisa Híbrida (Combinando Múltiplas Ferramentas)
+```python
+from agno.agent import Agent
+from agno.tools.duckduckgo import DuckDuckGoTools
+from agno.tools.exa import ExaTools
+
+agent = Agent(
+    tools=[
+        DuckDuckGoTools(),
+        ExaTools(category="news")
+    ],
+    show_tool_calls=True,
+    markdown=True
+)
+agent.print_response("Pesquise informações abrangentes sobre energia renovável")
+```
+
+Cada ferramenta tem suas próprias vantagens: DuckDuckGo é gratuita, Exa é otimizada para IA, Tavily oferece pesquisa avançada, e Google/Serper fornecem resultados abrangentes.
+
+```suggestions
+(Guia de Ferramentas)[/agents/tools]
+(Todas as Ferramentas Disponíveis)[/tools/toolkits/toolkits]
+(Exemplos de Pesquisa)[/examples/concepts/tools/search/duckduckgo]
+```
+
+Aqui estão exemplos de código com ferramentas de pesquisa médica e acadêmica no Agno:
+
+## 1. PubMed (Pesquisa Médica)
+```python
+from agno.agent import Agent
+from agno.tools.pubmed import PubMedTools
+
+# Agente para pesquisa médica
+medical_agent = Agent(
+    tools=[PubMedTools()],
+    show_tool_calls=True,
+    markdown=True,
+)
+medical_agent.print_response("Encontre pesquisas recentes sobre vacinas COVID-19")
+```
+
+## 2. ArXiv (Pesquisa Acadêmica)
+```python
+from agno.agent import Agent
+from agno.tools.arxiv import ArxivTools
+
+# Agente para pesquisa acadêmica
+academic_agent = Agent(
+    tools=[ArxivTools()], 
+    show_tool_calls=True
+)
+academic_agent.print_response("Pesquise no arxiv por 'modelos de linguagem'", markdown=True)
+```
+
+## 3. Google Scholar via Serper
+```python
+from agno.agent import Agent
+from agno.tools.serper import SerperTools
+
+scholar_agent = Agent(
+    tools=[SerperTools()],
+    show_tool_calls=True,
+)
+scholar_agent.print_response(
+    "Encontre 2 artigos acadêmicos recentes sobre segurança de modelos de linguagem",
+    markdown=True,
+)
+```
+
+## 4. Agente de Pesquisa Médica Avançado
+```python
+from agno.agent import Agent
+from agno.models.openai import OpenAIChat
+from agno.tools.pubmed import PubMedTools
+from agno.tools.exa import ExaTools
+
+medical_researcher = Agent(
+    model=OpenAIChat(id="gpt-4o"),
+    tools=[
+        PubMedTools(max_results=10),
+        ExaTools(
+            category="research paper",
+            include_domains=["pubmed.ncbi.nlm.nih.gov", "nejm.org", "thelancet.com"]
+        )
+    ],
+    description="Especialista em pesquisa médica e análise de literatura científica",
+    instructions="""
+    1. Pesquise literatura médica relevante no PubMed
+    2. Busque artigos complementares em revistas médicas
+    3. Analise metodologias e resultados
+    4. Forneça resumo com evidências científicas
+    5. Cite todas as fontes adequadamente
+    """,
+    show_tool_calls=True,
+    markdown=True
+)
+
+medical_researcher.print_response(
+    "Analise os tratamentos mais eficazes para diabetes tipo 2 baseados em evidências recentes"
+)
+```
+
+## 5. Agente de Pesquisa Acadêmica Completo
+```python
+from agno.agent import Agent
+from agno.models.openai import OpenAIChat
+from agno.tools.arxiv import ArxivTools
+from agno.tools.serper import SerperTools
+from agno.tools.exa import ExaTools
+
+academic_researcher = Agent(
+    model=OpenAIChat(id="gpt-4o"),
+    tools=[
+        ArxivTools(),
+        SerperTools(),
+        ExaTools(
+            category="research paper",
+            start_published_date="2024-01-01"
+        )
+    ],
+    description="Pesquisador acadêmico especializado em análise de literatura científica",
+    instructions="""
+    1. Busque artigos no ArXiv para pesquisas recentes
+    2. Use Google Scholar para artigos peer-reviewed
+    3. Encontre papers complementares com Exa
+    4. Analise metodologias e contribuições
+    5. Identifique lacunas de pesquisa
+    6. Formate como relatório acadêmico
+    """,
+    show_tool_calls=True,
+    markdown=True
+)
+
+academic_researcher.print_response(
+    "Faça uma revisão da literatura sobre computação quântica aplicada ao machine learning"
+)
+```
+
+## 6. Workflow de Pesquisa Médica
+```python
+from agno.agent import Agent
+from agno.models.openai import OpenAIChat
+from agno.tools.pubmed import PubMedTools
+from agno.tools.duckduckgo import DuckDuckGoTools
+
+clinical_research_agent = Agent(
+    model=OpenAIChat(id="gpt-4o"),
+    tools=[
+        PubMedTools(email="researcher@hospital.com", max_results=15),
+        DuckDuckGoTools()
+    ],
+    description="Especialista em pesquisa clínica e medicina baseada em evidências",
+    instructions="""
+    Como pesquisador clínico:
+    1. Pesquise evidências no PubMed primeiro
+    2. Busque guidelines clínicos atualizados
+    3. Analise ensaios clínicos randomizados
+    4. Avalie qualidade das evidências
+    5. Forneça recomendações baseadas em evidências
+    6. Inclua limitações dos estudos
+    """,
+    expected_output="""
+    # Revisão Clínica: {Tópico}
+    
+    ## Resumo Executivo
+    {Principais achados e recomendações}
+    
+    ## Evidências Científicas
+    {Análise dos estudos encontrados}
+    
+    ## Ensaios Clínicos Relevantes
+    {Resultados de RCTs importantes}
+    
+    ## Recomendações Clínicas
+    {Orientações baseadas em evidências}
+    
+    ## Limitações e Lacunas
+    {Áreas que precisam de mais pesquisa}
+    
+    ## Referências
+    {Citações formatadas}
+    """,
+    show_tool_calls=True,
+    markdown=True
+)
+
+clinical_research_agent.print_response(
+    "Analise as evidências sobre eficácia da telemedicina em cuidados primários"
+)
+```
+
+## 7. Pesquisa Multidisciplinar
+```python
+from agno.agent import Agent
+from agno.models.openai import OpenAIChat
+from agno.tools.pubmed import PubMedTools
+from agno.tools.arxiv import ArxivTools
+from agno.tools.serper import SerperTools
+
+multidisciplinary_agent = Agent(
+    model=OpenAIChat(id="gpt-4o"),
+    tools=[
+        PubMedTools(max_results=8),
+        ArxivTools(),
+        SerperTools()
+    ],
+    description="Pesquisador multidisciplinar especializado em intersecções entre medicina, tecnologia e ciência",
+    instructions="""
+    Abordagem multidisciplinar:
+    1. PubMed para literatura médica
+    2. ArXiv para pesquisas técnicas/computacionais
+    3. Google Scholar para estudos interdisciplinares
+    4. Identifique conexões entre áreas
+    5. Analise aplicações práticas
+    6. Destaque inovações emergentes
+    """,
+    show_tool_calls=True,
+    markdown=True
+)
+
+multidisciplinary_agent.print_response(
+    "Pesquise sobre aplicações de inteligência artificial no diagnóstico médico por imagem"
+)
+```
+
+Essas ferramentas permitem pesquisa especializada em:
+- **PubMed**: Literatura médica e biomédica
+- **ArXiv**: Preprints acadêmicos em física, matemática, CS
+- **Google Scholar**: Artigos peer-reviewed
+- **Exa**: Pesquisa otimizada para IA com filtros acadêmicos
+
+```suggestions
+(Ferramentas PubMed)[/tools/toolkits/search/pubmed]
+(Ferramentas ArXiv)[/tools/toolkits/search/arxiv]
+(Ferramentas Serper)[/tools/toolkits/search/serper]
+```
