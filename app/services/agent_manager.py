@@ -118,18 +118,24 @@ class AgentManager:
             AgentInstance.user_id == user_id,
             AgentInstance.instance_id == instance_id
         )
+
         if not instance:
-            # Se a instância não existe, cria uma nova com os dados fornecidos
             new_instance_data = {
                 'user_id': user_id,
                 'instance_id': instance_id,
                 **hierarchy_updates
             }
+            # Os agentes já são objetos HierarchicalAgentConfig, não dicts
             instance = AgentInstance(**new_instance_data)
         else:
-            # Atualiza a instância existente
-            for key, value in hierarchy_updates.items():
-                if hasattr(instance, key):
+            update_data = hierarchy_updates.copy()
+            if "agents" in update_data and update_data["agents"] is not None:
+                # A lista já contém objetos HierarchicalAgentConfig
+                instance.agents = update_data["agents"]
+                del update_data["agents"] # Remove para o loop abaixo
+
+            for key, value in update_data.items():
+                if hasattr(instance, key) and value is not None:
                     setattr(instance, key, value)
         
         await instance.save()

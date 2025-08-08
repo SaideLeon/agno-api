@@ -1,11 +1,34 @@
 from beanie import Document
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, validator
 from typing import Optional, List, Dict, Any
 from datetime import datetime
 from enum import Enum
 import uuid
 import pymongo
 from pymongo import IndexModel
+from pymongo import IndexModel
+
+class ModelProvider(str, Enum):
+    OPENAI = "openai"
+    CLAUDE = "claude"
+    GEMINI = "gemini"
+    GROQ = "groq"
+
+class ToolType(str, Enum):
+    """Enum para os tipos de ferramentas suportadas."""
+    DUCKDUCKGO = "DUCKDUCKGO"
+    YFINANCE = "YFINANCE"
+    # Adicione outros tipos de ferramentas aqui (ex: DATABASE, API)
+
+
+
+from beanie import Document
+from pydantic import BaseModel, Field
+from typing import Optional, List, Dict, Any
+from datetime import datetime
+from enum import Enum
+import uuid
+import pymongo
 from pymongo import IndexModel
 
 class ModelProvider(str, Enum):

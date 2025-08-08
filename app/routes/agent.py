@@ -2,15 +2,22 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from typing import Optional, List
 from app.services.agent_manager import agent_manager
-from app.models.instance import HierarchicalAgentConfig # Importa o modelo atualizado
+from app.models.instance import HierarchicalAgentConfig, ModelProvider, ToolConfig, ToolType
+import uuid
+import logging
 
 router = APIRouter(prefix="/agent", tags=["agent"])
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 class ChatRequest(BaseModel):
     user_id: str
     instance_id: str
-    session_id: str  # ID único da conversa (ex: número do WhatsApp do cliente)
+    whatsapp_number: str
+    username: str
     message: str
+    session_id: Optional[str] = None
 
 class ChatResponse(BaseModel):
     response: str
@@ -26,9 +33,15 @@ async def chat_with_agent(request: ChatRequest):
             instance_id=request.instance_id
         )
         
-        team.session_id = request.session_id
+        team.session_id = request.whatsapp_number
         
-        response = team.run(request.message)
+        # Adiciona o nome de usuário à mensagem para o agente
+        message_with_context = (
+            f"O nome do cliente é {request.username}. "
+            f"Mensagem do cliente: {request.message}"
+        )
+        
+        response = team.run(message_with_context)
         
         return ChatResponse(
             response=response.content,
@@ -42,24 +55,89 @@ class HierarchyUpdateRequest(BaseModel):
     user_id: str
     instance_id: str
     router_instructions: Optional[str] = None
-    agents: Optional[List[HierarchicalAgentConfig]] = None
+    agents: Optional[List[dict]] = None  # agora aceita dict cru, não só HierarchicalAgentConfig
+
+def normalize_agent(agent_data: dict) -> dict:
+    """Normaliza e valida dados de um agente antes de criar HierarchicalAgentConfig."""
+    # Garante agent_id
+    if not agent_data.get("agent_id"):
+        agent_data["agent_id"] = str(uuid.uuid4())
+
+    # Normaliza provider
+    provider = agent_data.get("model_provider", "gemini")
+    if isinstance(provider, str):
+        provider = provider.lower()
+        try:
+            agent_data["model_provider"] = ModelProvider(provider)
+        except ValueError:
+            agent_data["model_provider"] = ModelProvider.gemini
+    elif isinstance(provider, ModelProvider):
+        agent_data["model_provider"] = provider
+    else:
+        agent_data["model_provider"] = ModelProvider.gemini
+
+    # Model ID default
+    if not agent_data.get("model_id"):
+        agent_data["model_id"] = "gemini-1.5-flash"
+
+    # Normaliza tools
+    tools = agent_data.get("tools", [])
+    normalized_tools = []
+    for t in tools:
+        if isinstance(t, str):
+            try:
+                # Ex: "YFINANCE" → ToolConfig(type=ToolType.YFINANCE)
+                normalized_tools.append(ToolConfig(type=ToolType[t.upper()]))
+            except KeyError:
+                logger.warning(f"Tool '{t}' not found in ToolType enum. Skipping.")
+        elif isinstance(t, dict):
+            # Garante que o type está correto
+            t_type = t.get("type")
+            if isinstance(t_type, str):
+                try:
+                    t["type"] = ToolType[t_type.upper()]
+                    normalized_tools.append(ToolConfig(**t))
+                except KeyError:
+                    logger.warning(f"Tool type '{t_type}' not found in ToolType enum. Skipping tool.")
+            elif isinstance(t_type, ToolType):
+                normalized_tools.append(ToolConfig(**t))
+        elif isinstance(t, ToolConfig):
+            normalized_tools.append(t)
+    agent_data["tools"] = normalized_tools
+
+    return agent_data
 
 @router.put("/hierarchy")
 async def update_agent_hierarchy(request: HierarchyUpdateRequest):
-    """Cria ou atualiza a hierarquia de agentes de uma instância."""
-    update_data = request.dict(exclude_unset=True, exclude={'user_id', 'instance_id'})
-    
-    success = await agent_manager.update_instance_hierarchy(
-        user_id=request.user_id,
-        instance_id=request.instance_id,
-        hierarchy_updates=update_data
-    )
-    
-    if not success:
-        # Esta condição pode não ser mais alcançada devido à lógica de upsert
-        raise HTTPException(status_code=404, detail="Instance could not be created or updated")
-    
-    return {"message": "Hierarchy configuration updated successfully"}
+    logger.info(f"Recebida requisição para /hierarchy: user_id={request.user_id}, instance_id={request.instance_id}")
+    logger.info(f"Payload recebido: {request.dict()}")
+
+    try:
+        agents_normalized = None
+        if request.agents:
+            agents_normalized = [HierarchicalAgentConfig(**normalize_agent(a)) for a in request.agents]
+
+        hierarchy_updates = {
+            "router_instructions": request.router_instructions,
+            "agents": agents_normalized
+        }
+
+        success = await agent_manager.update_instance_hierarchy(
+            user_id=request.user_id,
+            instance_id=request.instance_id,
+            hierarchy_updates=hierarchy_updates
+        )
+
+        if not success:
+            logger.error("Falha ao criar ou atualizar a instância.")
+            raise HTTPException(status_code=404, detail="Instance could not be created or updated")
+
+        logger.info("Hierarquia atualizada com sucesso.")
+        return {"message": "Hierarchy configuration updated successfully"}
+
+    except Exception as e:
+        logger.exception("Erro ao processar a atualização da hierarquia")
+        raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/instances/{user_id}")
 async def get_user_instances(user_id: str):
