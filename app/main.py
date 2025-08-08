@@ -115,151 +115,146 @@ async def root():
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Agno Multi-Agent API</title>
         <script src="https://cdn.tailwindcss.com"></script>
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+        <link href="https://cdnjs.cloudflare.com/ajax/libs/heroicons/2.1.1/24/outline/rocket-launch.svg" rel="preload" as="image">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
         <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
         <style>
             body {
-                background-color: #1a202c;
-                color: #e2e8f0;
+                background-color: #0d1117;
+                color: #c9d1d9;
             }
-            .header, .footer {
-                background-color: #2d3748;
+            .bg-gradient-header {
+                background: linear-gradient(145deg, #161b22, #0d1117);
             }
             .card {
-                background-color: #2d3748;
-                border: 1px solid #4a5568;
-            }
-            .code-block {
-                background-color: #0d1117;
+                background-color: #161b22;
                 border: 1px solid #30363d;
             }
-            .btn {
-                background-color: #4a5568;
+            .code-block {
+                background-color: #010409;
+                border: 1px solid #30363d;
+            }
+            .btn-primary {
+                background-color: #238636;
                 transition: background-color 0.3s;
             }
-            .btn:hover {
-                background-color: #718096;
+            .btn-primary:hover {
+                background-color: #2ea043;
+            }
+            .btn-secondary {
+                background-color: #21262d;
+                border: 1px solid #30363d;
+                transition: all 0.3s;
+            }
+            .btn-secondary:hover {
+                background-color: #30363d;
+                border-color: #8b949e;
+            }
+            .feature-icon {
+                filter: invert(75%) sepia(10%) saturate(1000%) hue-rotate(180deg);
             }
         </style>
     </head>
     <body class="font-sans">
 
-        <!-- Cabeçalho -->
-        <header class="header shadow-md">
-            <div class="container mx-auto px-6 py-4">
-                <h1 class="text-3xl font-bold text-gray-200">Agno Multi-Agent API</h1>
-                <p class="text-gray-400 mt-2">Sua solução para orquestração de agentes de IA dinâmicos e multi-usuário.</p>
+        <header class="bg-gradient-header shadow-lg sticky top-0 z-10">
+            <div class="container mx-auto px-6 py-4 flex justify-between items-center">
+                <h1 class="text-2xl font-bold text-gray-200">Agno API</h1>
+                <nav>
+                    <a href="/docs" class="btn-secondary text-white font-bold py-2 px-4 rounded-lg">API Docs</a>
+                </nav>
             </div>
         </header>
 
-        <!-- Conteúdo Principal -->
-        <main class="container mx-auto px-6 py-12">
+        <main class="container mx-auto px-6 py-16">
             
-            <!-- Seção de Introdução -->
             <section class="text-center">
-                <h2 class="text-4xl font-extrabold text-white mb-4">Orquestração de IA Simplificada</h2>
+                <h2 class="text-5xl font-extrabold text-white mb-4">Orquestração de Agentes de IA, Simplificada</h2>
                 <p class="text-lg text-gray-400 max-w-3xl mx-auto">
-                    A Agno API oferece uma plataforma robusta para criar, gerenciar e coordenar equipes de agentes de IA. 
-                    Construa sistemas complexos onde múltiplos agentes colaboram para resolver tarefas, tudo através de uma API RESTful intuitiva.
+                    Uma plataforma robusta para criar, gerenciar e coordenar equipes de agentes de IA dinâmicos e com memória, através de uma API RESTful intuitiva e um playground interativo.
                 </p>
                 <div class="mt-8">
-                    <a href="/playground" class="btn text-white font-bold py-3 px-6 rounded-lg shadow-lg">
-                        Acessar Playground
-                    </a>
+                    <a href="/playground" class="btn-primary text-white font-bold py-3 px-8 rounded-lg shadow-lg text-lg">Acessar Playground</a>
                 </div>
             </section>
 
-            <!-- Seção de Exemplo de Uso -->
-            <section class="mt-16">
-                <h3 class="text-2xl font-semibold text-white mb-6 text-center">Exemplo de Uso: Chat com um Agente</h3>
-                <div class="card rounded-lg p-6 shadow-lg max-w-4xl mx-auto">
-                    <p class="text-gray-400 mb-4">
-                        Para interagir com uma equipe de agentes, envie uma requisição POST para o endpoint 
-                        <code class="bg-gray-700 text-sm rounded px-2 py-1">/agent/chat</code>. 
-                        A API gerencia a sessão e a memória da conversa, garantindo a continuidade.
-                    </p>
-                    <div class="code-block rounded-lg overflow-hidden">
-                        <pre><code class="language-python">
-# Exemplo de requisição usando Python
-import requests
-import json
-
-api_url = "http://localhost:8000/agent/chat"
-
-payload = {
-  "user_id": "user-123",
-  "instance_id": "instance-abc",
-  "whatsapp_number": "+5511999998888",
-  "username": "Carlos",
-  "message": "Qual a cotação atual das ações da NVIDIA?"
-}
-
-headers = {
-  "Content-Type": "application/json"
-}
-
-response = requests.post(api_url, data=json.dumps(payload), headers=headers)
-
-if response.status_code == 200:
-    print("Resposta do Agente:", response.json())
-else:
-    print("Erro:", response.status_code, response.text)
-                        </code></pre>
+            <section class="mt-24">
+                <h3 class="text-3xl font-bold text-white mb-12 text-center">Funcionalidades Principais</h3>
+                <div class="grid md:grid-cols-3 gap-8">
+                    <!-- Feature 1 -->
+                    <div class="card p-6 rounded-lg">
+                        <h4 class="font-bold text-xl mb-2">Hierarquia Dinâmica</h4>
+                        <p class="text-gray-400">Crie e atualize equipes com agentes especialistas e um roteador inteligente em tempo real via API.</p>
+                    </div>
+                    <!-- Feature 2 -->
+                    <div class="card p-6 rounded-lg">
+                        <h4 class="font-bold text-xl mb-2">Memória Persistente</h4>
+                        <p class="text-gray-400">As conversas são salvas no MongoDB, garantindo continuidade e contexto em cada interação.</p>
+                    </div>
+                    <!-- Feature 3 -->
+                    <div class="card p-6 rounded-lg">
+                        <h4 class="font-bold text-xl mb-2">Playground Interativo</h4>
+                        <p class="text-gray-400">Teste e configure suas equipes de agentes em tempo real com uma interface web via WebSockets.</p>
                     </div>
                 </div>
             </section>
 
-            <!-- Seção de Criação de Equipe -->
-            <section class="mt-16">
-                <h3 class="text-2xl font-semibold text-white mb-6 text-center">Como Criar e Configurar uma Equipe</h3>
-                <div class="card rounded-lg p-6 shadow-lg max-w-4xl mx-auto">
-                    <p class="text-gray-400 mb-4">
-                        A criação e atualização de equipes de agentes é feita através do endpoint 
-                        <code class="bg-gray-700 text-sm rounded px-2 py-1">/agent/hierarchy</code> usando o método PUT. 
-                        Você pode definir a estrutura da equipe, os agentes membros, seus modelos, ferramentas e instruções específicas.
-                    </p>
-                    <div class="code-block rounded-lg overflow-hidden">
-                        <pre><code class="language-json">
-# Exemplo de payload para criar/atualizar uma equipe
-{
+            <section class="mt-24">
+                <h3 class="text-3xl font-bold text-white mb-12 text-center">Endpoints Essenciais</h3>
+                <div class="grid md:grid-cols-2 gap-8">
+                    
+                    <div class="card rounded-lg p-6">
+                        <h4 class="font-semibold text-xl mb-4">Configuração de Equipes</h4>
+                        <p class="text-gray-400 mb-4">Use o endpoint <code class="bg-gray-700 text-sm rounded px-2 py-1">PUT /agent/hierarchy</code> para definir a estrutura da sua equipe.</p>
+                        <div class="code-block rounded-lg overflow-hidden">
+                            <pre><code class="language-json">{
   "user_id": "user-123",
-  "instance_id": "instance-abc",
-  "router_instructions": "Você é um roteador inteligente. Delegue a tarefa para o especialista adequado.",
-  "agents": [
-    {
-      "name": "Analista Financeiro",
-      "role": "Especialista em análise de ações e dados financeiros.",
-      "model_provider": "GEMINI",
-      "model_id": "gemini-1.5-flash",
-      "tools": [
-        {
-          "type": "YFINANCE",
-          "config": { "stock_price": true, "company_news": true }
-        }
-      ]
-    },
-    {
-      "name": "Pesquisador Web",
-      "role": "Especialista em buscar informações na web.",
-      "model_provider": "GEMINI",
-      "model_id": "gemini-1.5-flash",
-      "tools": [
-        { "type": "DUCKDUCKGO" }
-      ]
-    }
-  ]
-}
-                        </code></pre>
+  "instance_id": "finance-team",
+  "agents": [...] 
+}</code></pre>
+                        </div>
                     </div>
+
+                    <div class="card rounded-lg p-6">
+                        <h4 class="font-semibold text-xl mb-4">Chat via API</h4>
+                        <p class="text-gray-400 mb-4">Interaja com sua equipe através do endpoint <code class="bg-gray-700 text-sm rounded px-2 py-1">POST /agent/chat</code>.</p>
+                        <div class="code-block rounded-lg overflow-hidden">
+                            <pre><code class="language-json">{
+  "user_id": "user-123",
+  "instance_id": "finance-team",
+  "whatsapp_number": "+123...",
+  "message": "..."
+}</code></pre>
+                        </div>
+                    </div>
+
+                    <div class="card rounded-lg p-6">
+                        <h4 class="font-semibold text-xl mb-4">Listar Sessões</h4>
+                        <p class="text-gray-400 mb-4">Filtre e liste sessões de conversa com <code class="bg-gray-700 text-sm rounded px-2 py-1">GET /agent/sessions</code>.</p>
+                        <div class="code-block rounded-lg overflow-hidden">
+                            <pre><code class="language-bash"># Exemplo de chamada
+curl "/agent/sessions?instance_id=finance-team"</code></pre>
+                        </div>
+                    </div>
+
+                    <div class="card rounded-lg p-6">
+                        <h4 class="font-semibold text-xl mb-4">Obter Conversa</h4>
+                        <p class="text-gray-400 mb-4">Recupere o histórico completo de uma sessão com <code class="bg-gray-700 text-sm rounded px-2 py-1">GET /agent/sessions/{session_id}/conversation</code>.</p>
+                        <div class="code-block rounded-lg overflow-hidden">
+                            <pre><code class="language-bash"># Exemplo de chamada
+curl "/agent/sessions/whatsapp:+123.../conversation"</code></pre>
+                        </div>
+                    </div>
+
                 </div>
             </section>
 
         </main>
 
-        <!-- Rodapé -->
-        <footer class="footer mt-12 py-6">
+        <footer class="border-t border-gray-800 mt-16 py-8">
             <div class="container mx-auto text-center text-gray-500">
                 <p>&copy; 2024 Agno Systems. Todos os direitos reservados.</p>
+                <p class="mt-2">Repositório: <a href="https://github.com/SaideLeon/agno-api.git" class="hover:text-white">https://github.com/SaideLeon/agno-api.git</a></p>
             </div>
         </footer>
 

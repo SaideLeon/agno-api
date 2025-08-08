@@ -1,8 +1,9 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel
 from typing import Optional, List
 from app.services.agent_manager import agent_manager
 from app.models.instance import HierarchicalAgentConfig, ModelProvider, ToolConfig, ToolType
+from app.models.memory import AgentMemory
 import uuid
 import logging
 
@@ -145,3 +146,37 @@ async def get_user_instances(user_id: str):
     from app.models.instance import AgentInstance
     instances = await AgentInstance.find(AgentInstance.user_id == user_id).to_list()
     return {"instances": instances}
+
+@router.get("/sessions")
+async def get_sessions(
+    instance_id: str = Query(..., description="ID da instância para filtrar as sessões"),
+    whatsapp_number: Optional[str] = Query(None, description="Número do WhatsApp (session_id) para filtrar as sessões")
+):
+    """Lista todas as sessões de conversa, com filtros."""
+    query = {"instance_id": instance_id}
+    if whatsapp_number:
+        query["session_id"] = whatsapp_number
+    
+    sessions = await AgentMemory.find(query).to_list()
+    
+    # Retorna um resumo para não sobrecarregar a resposta
+    session_summaries = [
+        {
+            "session_id": s.session_id,
+            "user_id": s.user_id,
+            "instance_id": s.instance_id,
+            "message_count": len(s.messages),
+            "created_at": s.created_at,
+            "updated_at": s.updated_at
+        } for s in sessions
+    ]
+    return {"sessions": session_summaries}
+
+@router.get("/sessions/{session_id}/conversation")
+async def get_conversation(session_id: str):
+    """Obtém o histórico completo de mensagens de uma sessão específica."""
+    session = await AgentMemory.find_one({"session_id": session_id})
+    if not session:
+        raise HTTPException(status_code=404, detail="Sessão não encontrada")
+    
+    return {"conversation": session.messages}
