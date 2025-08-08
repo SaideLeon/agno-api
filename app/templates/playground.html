@@ -46,8 +46,8 @@
                     <h2 class="text-xl font-semibold text-white mb-4">Chat em Tempo Real</h2>
                     <div id="chat-box" class="h-96 overflow-y-auto p-2 border border-gray-600 rounded mb-4"></div>
                     <div class="flex">
-                        <input type="text" id="message-input" class="flex-grow p-2 rounded-l bg-gray-800 text-white" placeholder="Digite sua mensagem...">
-                        <button id="send-btn" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-r">Enviar</button>
+                        <input type="text" id="message-input" class="flex-grow p-2 rounded-l bg-gray-800 text-white" placeholder="Configure a equipe para começar..." disabled>
+                        <button id="send-btn" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-r disabled:bg-gray-500 disabled:cursor-not-allowed" disabled>Enviar</button>
                     </div>
                 </div>
             </div>
@@ -65,7 +65,6 @@
 
         let socket;
 
-        // Exemplo de configuração inicial
         const initialConfig = {
             "router_instructions": "Você é um roteador inteligente. Delegue a tarefa para o especialista adequado.",
             "agents": [
@@ -94,94 +93,125 @@
         };
         configEditor.value = JSON.stringify(initialConfig, null, 2);
 
-        function connectWebSocket() {
-            const userId = userIdInput.value;
-            const instanceId = instanceIdInput.value;
+        function addMessageToChat(message, sender) {
+            const bubble = document.createElement('div');
+            bubble.className = `chat-bubble p-2 rounded mb-2 ${
+                sender === 'user' ? 'user text-right' : 
+                sender === 'system' ? 'text-center text-gray-400 text-sm' : 'agent'
+            }`;
+            bubble.textContent = message;
+            chatBox.appendChild(bubble);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        function setChatDisabled(disabled) {
+            messageInput.disabled = disabled;
+            sendBtn.disabled = disabled;
+            messageInput.placeholder = disabled ? 'Configure a equipe para começar...' : 'Digite sua mensagem...';
+        }
+
+        async function criarOuAtualizarEquipe() {
+            updateConfigBtn.disabled = true;
+            updateConfigBtn.textContent = 'Atualizando...';
+
+            const userId = userIdInput.value.trim();
+            const instanceId = instanceIdInput.value.trim();
             
             if (!userId || !instanceId) {
-                alert('Por favor, preencha User ID e Instance ID.');
+                addMessageToChat('User ID e Instance ID são obrigatórios.', 'system');
+                updateConfigBtn.disabled = false;
+                updateConfigBtn.textContent = 'Criar/Atualizar Equipe';
                 return;
             }
 
-            if (socket) {
+            let config;
+            try {
+                config = JSON.parse(configEditor.value);
+            } catch (e) {
+                addMessageToChat('Erro no formato JSON da configuração.', 'system');
+                updateConfigBtn.disabled = false;
+                updateConfigBtn.textContent = 'Criar/Atualizar Equipe';
+                return;
+            }
+
+            const payload = { user_id: userId, instance_id: instanceId, ...config };
+
+            try {
+                const response = await fetch('/agent/hierarchy', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (response.ok) {
+                    addMessageToChat('Equipe atualizada com sucesso!', 'system');
+                    conectarWebSocket(userId, instanceId);
+                } else {
+                    const errorData = await response.json();
+                    addMessageToChat(`Falha ao atualizar: ${errorData.detail || response.statusText}`, 'system');
+                }
+            } catch (error) {
+                addMessageToChat('Erro de rede ao atualizar a configuração.', 'system');
+                console.error("Fetch Error:", error);
+            } finally {
+                updateConfigBtn.disabled = false;
+                updateConfigBtn.textContent = 'Criar/Atualizar Equipe';
+            }
+        }
+
+        function conectarWebSocket(userId, instanceId) {
+            if (socket && socket.readyState === WebSocket.OPEN) {
                 socket.close();
             }
 
-            socket = new WebSocket(`ws://${window.location.host}/ws/chat?user_id=${userId}&instance_id=${instanceId}`);
+            const wsUrl = `${location.protocol === 'https:' ? 'wss' : 'ws'}://${location.host}/ws/chat?user_id=${encodeURIComponent(userId)}&instance_id=${encodeURIComponent(instanceId)}`;
+            socket = new WebSocket(wsUrl);
+
+            addMessageToChat('Conectando ao servidor...', 'system');
 
             socket.onopen = () => {
-                addMessageToChat('Conectado ao servidor.', 'system');
+                addMessageToChat('Conectado com sucesso! Pode começar a conversar.', 'system');
+                setChatDisabled(false);
             };
 
             socket.onmessage = (event) => {
                 addMessageToChat(event.data, 'agent');
             };
 
+            socket.onerror = (error) => {
+                addMessageToChat('Erro de conexão. Verifique o console para detalhes.', 'system');
+                console.error("WebSocket Error:", error);
+                setChatDisabled(true);
+            };
+
             socket.onclose = () => {
                 addMessageToChat('Desconectado do servidor.', 'system');
+                setChatDisabled(true);
             };
         }
 
-        function addMessageToChat(message, sender) {
-            const bubble = document.createElement('div');
-            bubble.classList.add('chat-bubble', 'p-2', 'rounded', 'mb-2');
-            if (sender === 'user') {
-                bubble.classList.add('user', 'text-right');
-            } else if (sender === 'system') {
-                bubble.classList.add('text-center', 'text-gray-400', 'text-sm');
-            } else {
-                bubble.classList.add('agent');
-            }
-            bubble.textContent = message;
-            chatBox.appendChild(bubble);
-            chatBox.scrollTop = chatBox.scrollHeight;
-        }
+        function sendMessage() {
+            const message = messageInput.value.trim();
+            if (message === '') return;
 
-        sendBtn.addEventListener('click', () => {
-            const message = messageInput.value;
-            if (socket && socket.readyState === WebSocket.OPEN && message.trim() !== '') {
+            if (socket && socket.readyState === WebSocket.OPEN) {
                 socket.send(message);
                 addMessageToChat(message, 'user');
                 messageInput.value = '';
-            }
-        });
-
-        updateConfigBtn.addEventListener('click', async () => {
-            const userId = userIdInput.value;
-            const instanceId = instanceIdInput.value;
-            let config;
-            try {
-                config = JSON.parse(configEditor.value);
-            } catch (e) {
-                alert('Erro no formato JSON da configuração.');
-                return;
-            }
-
-            const payload = {
-                user_id: userId,
-                instance_id: instanceId,
-                ...config
-            };
-
-            const response = await fetch('/agent/hierarchy', {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(payload)
-            });
-
-            if (response.ok) {
-                alert('Configuração da equipe atualizada com sucesso!');
-                connectWebSocket(); // Reconecta para usar a nova configuração
             } else {
-                alert('Falha ao atualizar a configuração.');
+                addMessageToChat('Erro: Não conectado. Crie/atualize a equipe primeiro.', 'system');
+            }
+        }
+
+        updateConfigBtn.addEventListener('click', criarOuAtualizarEquipe);
+        sendBtn.addEventListener('click', sendMessage);
+        messageInput.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter') {
+                sendMessage();
             }
         });
 
-        // Conecta ao carregar a página
-        connectWebSocket();
-
+        addMessageToChat('Bem-vindo ao Playground! Configure sua equipe e clique em "Criar/Atualizar Equipe" para começar.', 'system');
     </script>
 
 </body>

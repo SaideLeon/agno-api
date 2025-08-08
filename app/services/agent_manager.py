@@ -99,10 +99,12 @@ class AgentManager:
             name=f"Team_{instance_id}",
             members=members,
             mode="route",
+            model=Gemini(id="gemini-1.5-flash"),
             storage=storage,
             instructions=instance.router_instructions,
             show_members_responses=True,
-            enable_agentic_context=True
+            enable_agentic_context=True,
+            add_history_to_messages=True
         )
 
         self.teams_cache[cache_key] = team

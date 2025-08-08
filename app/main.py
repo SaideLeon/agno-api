@@ -79,6 +79,15 @@ async def websocket_endpoint(websocket: WebSocket, user_id: str, instance_id: st
         team = await agent_manager.get_or_create_team(user_id, instance_id)
         team.session_id = f"{user_id}-{instance_id}-playground"
 
+        if not team.members:
+            await websocket.send_text(
+                "A equipe de agentes ainda não foi configurada. "
+                "Por favor, use o painel de configuração para definir os agentes e, "
+                "em seguida, clique em 'Criar/Atualizar Equipe'."
+            )
+            await websocket.close()
+            return
+
         while True:
             data = await websocket.receive_text()
             response = team.run(data)
