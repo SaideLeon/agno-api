@@ -66,15 +66,17 @@ class HierarchicalAgentConfig(BaseModel):
 
     model_config = {"protected_namespaces": ()}
 
+
 class AgentInstance(Document):
     """Representa uma instância de uma equipe de agentes hierárquicos."""
     user_id: str
     instance_id: str
     
     router_instructions: str = (
-        "Você é um roteador inteligente. Sua função é analisar a mensagem do usuário "
-        "e delegar a tarefa para o especialista mais adequado na sua equipe. "
-        "Responda apenas com o nome do especialista que deve ser acionado."
+        "Você é o coordenador de uma equipe de especialistas. Sua função é analisar a "
+        "solicitação do usuário, delegar a tarefa para o membro da equipe mais qualificado e, em seguida, "
+        "apresentar a resposta final do especialista de forma clara e direta para o usuário. "
+        "Se a solicitação for uma continuação da conversa, leve o histórico em consideração."
     )
     
     agents: List[HierarchicalAgentConfig] = []
