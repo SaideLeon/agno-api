@@ -12,4 +12,3 @@ yfinance
 openai
 anthropic 
 groq
-packaging
