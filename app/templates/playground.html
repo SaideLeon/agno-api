@@ -7,6 +7,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
         body { background-color: #1a202c; color: #e2e8f0; }
         .header, .footer { background-color: #2d3748; }
@@ -14,6 +15,8 @@
         .chat-bubble { background-color: #4a5568; }
         .chat-bubble.user { background-color: #38a169; }
         .config-editor { height: 400px; }
+        .chat-bubble pre { background-color: #1f2937; padding: 0.5rem; border-radius: 0.25rem; overflow-x: auto; }
+        .chat-bubble code { font-family: monospace; }
     </style>
 </head>
 <body class="font-sans">
@@ -99,7 +102,16 @@
                 sender === 'user' ? 'user text-right' : 
                 sender === 'system' ? 'text-center text-gray-400 text-sm' : 'agent'
             }`;
-            bubble.textContent = message;
+
+            if (sender === 'user' || sender === 'system') {
+                bubble.textContent = message;
+            } else {
+                bubble.innerHTML = marked.parse(message);
+                bubble.querySelectorAll('pre code').forEach((block) => {
+                    hljs.highlightElement(block);
+                });
+            }
+
             chatBox.appendChild(bubble);
             chatBox.scrollTop = chatBox.scrollHeight;
         }
